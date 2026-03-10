@@ -48,7 +48,6 @@ public class TicketController {
         return ApiResult.ok(ticketService.create(userId, request));
     }
 
-	// TODO : 페이징 필요시 추가
 	@Operation(summary = "그린룸 입장권 이름 조회", description = "무한스크롤용으로 본인의 티켓 목록을 조회합니다.")
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)

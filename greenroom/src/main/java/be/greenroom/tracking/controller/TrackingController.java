@@ -42,6 +42,7 @@ public class TrackingController {
 		ErrorCode.ALREADY_RESOLVED_TICKET,
 		ErrorCode.INVALID_TRACKING_REQUEST,
 		ErrorCode.TRACKING_ETC_CONTENT_REQUIRED,
+		ErrorCode.NOTIFICATION_EVENT_SERIALIZATION_FAILED
 	})
 	@PostMapping("/{ticketId}/tracking")
 	@ResponseStatus(HttpStatus.CREATED)
