@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import be.common.api.ApiResult;
+import be.common.api.ErrorCode;
+import be.common.docs.ApiErrorCodeExample;
 import be.greenroom.ticket.dto.request.CreateTicketRequest;
 import be.greenroom.ticket.dto.response.TicketPreviewResponse;
 import be.greenroom.ticket.dto.response.TicketResponse;
@@ -57,12 +59,15 @@ public class TicketController {
     }
 
 	@Operation(summary = "그린룸 입장권 단건 조회", description = "ticketId로 그린룸 입장권 단건을 조회합니다.")
+	@ApiErrorCodeExample(ErrorCode.NO_TICKET_ACCESS)
 	@GetMapping("/{ticketId}")
 	@ResponseStatus(HttpStatus.OK)
 	public ApiResult<TicketResponse> getTicket(
+		@RequestHeader("X-User-Id") @NotBlank String userIdHeader,
 		@PathVariable UUID ticketId
 	) {
-		return ApiResult.ok(ticketService.getTicket(ticketId));
+		UUID userId = UUID.fromString(userIdHeader);
+		return ApiResult.ok(ticketService.getTicket(userId, ticketId));
 	}
 
 	@Operation(summary = "그린룸 티켓 해결 처리", description = "해결 완료된 티켓은 알림 발송 대상에서 제외됩니다.")
