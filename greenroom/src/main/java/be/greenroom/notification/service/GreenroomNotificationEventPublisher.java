@@ -19,7 +19,6 @@ public class GreenroomNotificationEventPublisher {
 	private final ObjectMapper objectMapper;
 
 	public void publish(String key, Object event) {
-		// TODO: 이벤트 발행 책임의 서비스 위치를 추후 재검토 (greenroom 유지 vs 별도 서비스)
 		try {
 			String payload = objectMapper.writeValueAsString(event);
 			kafkaTemplate.send(GREENROOM_NOTIFICATION_TOPIC, key, payload);
