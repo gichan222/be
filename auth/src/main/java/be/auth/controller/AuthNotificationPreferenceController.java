@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import be.auth.dto.response.NotificationPreferenceResponse;
 import be.auth.service.AuthNotificationPreferenceService;
 import be.common.api.ApiResult;
+import be.common.api.ErrorCode;
+import be.common.docs.ApiErrorCodeExamples;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -28,7 +30,14 @@ public class AuthNotificationPreferenceController {
 
 	private final AuthNotificationPreferenceService preferenceService;
 
-	@Operation(summary = "알림 수신 설정 조회")
+	@Operation(
+		summary = "알림 수신 설정 조회",
+		description = "사용자의 알림 수신 설정을 조회합니다."
+	)
+	@ApiErrorCodeExamples({
+		ErrorCode.NOT_FOUND_USER
+	})
+
 	@GetMapping("/preference")
 	public ApiResult<NotificationPreferenceResponse> get(
 		@RequestHeader("X-User-Id") @NotBlank String userIdHeader
@@ -36,7 +45,14 @@ public class AuthNotificationPreferenceController {
 		return ApiResult.ok(preferenceService.get(UUID.fromString(userIdHeader)));
 	}
 
-	@Operation(summary = "알림 수신 설정 토글")
+	@Operation(
+		summary = "알림 수신 설정 토글",
+		description = "토글을 통해 사용자 알림 수신 설정 상태를 변경합니다."
+	)
+	@ApiErrorCodeExamples({
+		ErrorCode.NOT_FOUND_USER
+	})
+
 	@PutMapping("/preference")
 	@ResponseStatus(HttpStatus.OK)
 	public ApiResult<NotificationPreferenceResponse> toggle(
