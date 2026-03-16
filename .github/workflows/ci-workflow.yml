@@ -41,9 +41,14 @@ jobs:
               - 'notification/**'
   
 
-  test:
+  test-auth:
     needs: detect-changes
+    if: needs.detect-changes.outputs.auth == 'true'
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: auth
 
     steps:
       - uses: actions/checkout@v4
@@ -55,33 +60,81 @@ jobs:
           java-version: 21
           cache: gradle
 
-      - name: Run auth tests
-        run: |
-          cd auth
-          chmod +x gradlew
-          ./gradlew test
+      - name: Run tests
+        run: ./gradlew clean test
 
-      - name: Run gateway tests
-        run: |
-          cd gateway
-          chmod +x gradlew
-          ./gradlew test
 
-      - name: Run greenroom tests
-        run: |
-          cd greenroom
-          chmod +x gradlew
-          ./gradlew test
+  test-gateway:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.gateway == 'true'
+    runs-on: ubuntu-latest
 
-      - name: Run notification tests
-        run: |
-          cd notification
-          chmod +x gradlew
-          ./gradlew test
+    defaults:
+      run:
+        working-directory: gateway
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Run tests
+        run: ./gradlew clean test
+
+
+  test-greenroom:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.greenroom == 'true'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: greenroom
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Run tests
+        run: ./gradlew clean test
+
+
+  test-notification:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.notification == 'true'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: notification
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Run tests
+        run: ./gradlew clean test
   
 
   build-auth:
-    needs: [detect-changes, test]
+    needs: [detect-changes, test-auth]
     if: needs.detect-changes.outputs.auth == 'true'
     runs-on: ubuntu-latest
 
@@ -103,10 +156,17 @@ jobs:
         if: github.event_name == 'push'
         run: docker push $IMAGE_PREFIX/auth:latest
 
+      - name: Trigger Auth CD
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: cd.auth.yml
+          ref: main
+
 
 
   build-gateway:
-    needs: [detect-changes, test]
+    needs: [detect-changes, test-gateway]
     if: needs.detect-changes.outputs.gateway == 'true'
     runs-on: ubuntu-latest
 
@@ -129,9 +189,17 @@ jobs:
         run: docker push $IMAGE_PREFIX/gateway:latest
 
 
+      - name: Trigger Gateway CD
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: cd.gateway.yml
+          ref: main
+
+
 
   build-greenroom:
-    needs: [detect-changes, test]
+    needs: [detect-changes, test-greenroom]
     if: needs.detect-changes.outputs.greenroom == 'true'
     runs-on: ubuntu-latest
 
@@ -153,9 +221,16 @@ jobs:
         if: github.event_name == 'push'
         run: docker push $IMAGE_PREFIX/greenroom:latest
 
+      - name: Trigger Greenroom CD
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: cd.greenroom.yml
+          ref: main
+
 
   build-notification:
-    needs: [detect-changes, test]
+    needs: [detect-changes, test-notification]
     if: needs.detect-changes.outputs.notification == 'true'
     runs-on: ubuntu-latest
 
@@ -176,3 +251,10 @@ jobs:
       - name: Push image
         if: github.event_name == 'push'
         run: docker push $IMAGE_PREFIX/notification:latest
+
+      - name: Trigger Notification CD
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: cd.notification.yml
+          ref: main
