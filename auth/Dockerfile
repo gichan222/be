@@ -1,6 +1,6 @@
 FROM gradle:8.5-jdk21 AS build
 WORKDIR /home/gradle/project
-COPY --chown=gradle:gradle ./auth ./auth
+COPY --chown=gradle:gradle . .
 RUN chmod +x ./auth/gradlew
 RUN cd ./auth && ./gradlew clean bootJar -x test
 FROM eclipse-temurin:21-jdk
