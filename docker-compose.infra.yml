@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: auth
+      MYSQL_PASSWORD: auth
+      TZ: Asia/Seoul
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  db_schema_apply:
+    image: mysql:8.0
+    depends_on:
+      - mysql
+    volumes:
+      - ./mysql/init/create-schema.sql:/schema/create-schema.sql:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      until mysqladmin ping -h mysql -uroot -p$$MYSQL_ROOT_PASSWORD --silent; do
+        echo 'waiting for mysql...'; sleep 2;
+      done;
+      mysql -h mysql -uroot -p$$MYSQL_ROOT_PASSWORD < /schema/create-schema.sql;
+      echo 'schema applied';
+      "
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    restart: "no"
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:29092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+
+volumes:
+  redis-data:
+  mysql-data:

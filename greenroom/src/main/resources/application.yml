@@ -1,0 +1,36 @@
+server:
+  port: 8082
+
+spring:
+  jackson:
+    time-zone: Asia/Seoul
+
+  application:
+    name: greenroom
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:greenroom}
+    username: ${DB_USERNAME:auth}
+    password: ${DB_PASSWORD:auth}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: Asia/Seoul
+
+  kafka:
+    bootstrap-servers: ${kafka.servers:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        linger.bs: 0
+        spring.json.trusted.packages: "*"
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}

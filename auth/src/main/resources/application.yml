@@ -1,0 +1,50 @@
+server:
+  port: 8081
+
+spring:
+  jackson:
+    time-zone: Asia/Seoul
+
+  application:
+    name: auth
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:auth}
+    username: ${DB_USERNAME:auth}
+    password: ${DB_PASSWORD:auth}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: Asia/Seoul
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${kafka.servers:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+app:
+  invite:
+    login-url: ${APP_INVITE_LOGIN_URL}
+
+  email:
+    from: ${EMAIL_FROM}
+
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URI}
+
+jwt:
+  secret: ${kt.jwt.secret:kt-cloud-tech-up-final-project-2026020201010101}
+  access-token-expiration: ${kt.jwt.access-token-expiration:300000} # 5
+  refresh-token-expiration: ${kt.jwt.refresh-token-expiration:43200000} # 12
