@@ -35,7 +35,8 @@ jobs:
             set -e
 
             cd ~/app
-            mkdir -p gateway
+            sudo mkdir -p ~/app/gateway
+            sudo chown -R "$USER":"$USER" ~/app/gateway
 
             cat > gateway/.env <<'EOF'
             ${{ secrets.GATEWAY_ENV_FILE }}
