@@ -52,6 +52,7 @@ jobs:
           proxy_key: ${{ secrets.BASTION_SSH_KEY }}
           source: gateway/docker-compose.gateway.yml
           target: /home/${{ secrets.EC2_USER_GATEWAY }}/app/gateway/
+          strip_components: 1
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
