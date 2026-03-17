@@ -11,7 +11,8 @@ spring:
       cluster:
         nodes:
           - ${REDIS_HOST}:${REDIS_PORT}
-
+      ssl:
+        enabled: true
   cloud:
     gateway:
       server:
