@@ -38,7 +38,7 @@ jobs:
             set -e
             sudo mkdir -p ~/app/gateway
             sudo chown -R "$USER":"$USER" ~/app/gateway
-            
+
       - name: Copy compose file
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -76,17 +76,18 @@ jobs:
             EOF
 
             # Log in to GHCR using a PAT stored as a repository secret
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-            
+            echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
             # Export IMAGE_PREFIX for docker-compose interpolation
             export IMAGE_PREFIX=ghcr.io/${{ github.repository_owner }}
+
             # Pull latest image for gateway
-            docker compose -f docker-compose.gateway.yml pull gateway
+            sudo docker compose -f docker-compose.gateway.yml pull gateway
 
             # Restart gateway service
             echo "Restarting gateway..."
-            docker compose -f docker-compose.gateway.yml up -d --no-deps gateway
+            sudo docker compose -f docker-compose.gateway.yml up -d --no-deps gateway
             echo "gateway restarted."
 
             # Remove dangling images to free disk space
-            docker image prune -f
+            sudo docker image prune -f
