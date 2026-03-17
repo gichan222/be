@@ -11,40 +11,8 @@ env:
   IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
 
 jobs:
-  detect-changes:
-    name: Detect Notification Changes
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.filter.outputs.changed }}
-
-    steps:
-      - name: Checkout CI commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 2
-
-      - name: Detect notification changes
-        id: filter
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            FILES="$(git diff --name-only HEAD^ HEAD)"
-          else
-            FILES="$(git show --pretty='' --name-only HEAD)"
-          fi
-
-          if printf '%s\n' "$FILES" | rg -q '^(notification/|\.github/workflows/cd\.notification\.yml)$'; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
   deploy:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.changed == 'true'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     name: Deploy Notification to EC2
     runs-on: ubuntu-latest
 
