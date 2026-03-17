@@ -7,7 +7,7 @@ on:
     paths:
       - 'greenroom/**'
       - '.github/workflows/cd.greenroom.yml'
-      - 'docker-compose.greenroom.yml'
+      - 'greenroom/docker-compose.greenroom.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -19,22 +19,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare remote directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST_GREENROOM }}
+          port: 22
+          username: ${{ secrets.EC2_USER_GREENROOM }}
+          key: ${{ secrets.EC2_SSH_KEY_GREENROOM }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          debug: true
+          script: |
+            set -e
+            mkdir -p ~/app/greenroom
+
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST_GREENROOM }}
+          port: 22
+          username: ${{ secrets.EC2_USER_GREENROOM }}
+          key: ${{ secrets.EC2_SSH_KEY_GREENROOM }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          source: greenroom/docker-compose.greenroom.yml
+          target: /home/${{ secrets.EC2_USER_GREENROOM }}/app/greenroom/
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST_GREENROOM }}
+          port: 22
           username: ${{ secrets.EC2_USER_GREENROOM }}
           key: ${{ secrets.EC2_SSH_KEY_GREENROOM }}
           proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
           proxy_username: ${{ secrets.BASTION_USER }}
           proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          debug: true
           script: |
             set -e
 
-            cd ~/app
-            mkdir -p greenroom
+            cd ~/app/greenroom
 
-            cat > greenroom/.env <<'EOF'
+            cat > .env <<'EOF'
             ${{ secrets.GREENROOM_ENV_FILE }}
             EOF
 

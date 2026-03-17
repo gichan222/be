@@ -7,7 +7,7 @@ on:
     paths:
       - 'notification/**'
       - '.github/workflows/cd.notification.yml'
-      - 'docker-compose.notification.yml'
+      - 'notification/docker-compose.notification.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -19,22 +19,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare remote directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST_NOTIFICATION }}
+          port: 22
+          username: ${{ secrets.EC2_USER_NOTIFICATION }}
+          key: ${{ secrets.EC2_SSH_KEY_NOTIFICATION }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          debug: true
+          script: |
+            set -e
+            mkdir -p ~/app/notification
+
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST_NOTIFICATION }}
+          port: 22
+          username: ${{ secrets.EC2_USER_NOTIFICATION }}
+          key: ${{ secrets.EC2_SSH_KEY_NOTIFICATION }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          source: notification/docker-compose.notification.yml
+          target: /home/${{ secrets.EC2_USER_NOTIFICATION }}/app/notification/
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST_NOTIFICATION }}
+          port: 22
           username: ${{ secrets.EC2_USER_NOTIFICATION }}
           key: ${{ secrets.EC2_SSH_KEY_NOTIFICATION }}
           proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
           proxy_username: ${{ secrets.BASTION_USER }}
           proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          debug: true
           script: |
             set -e
 
-            cd ~/app
-            mkdir -p notification
+            cd ~/app/notification
 
-            cat > notification/.env <<'EOF'
+            cat > .env <<'EOF'
             ${{ secrets.NOTIFICATION_ENV_FILE }}
             EOF
 
