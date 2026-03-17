@@ -36,8 +36,9 @@ jobs:
           debug: true
           script: |
             set -e
-            mkdir -p ~/app/gateway
-
+            sudo mkdir -p ~/app/gateway
+            sudo chown -R "$USER":"$USER" ~/app/gateway
+            
       - name: Copy compose file
         uses: appleboy/scp-action@v0.1.7
         with:
