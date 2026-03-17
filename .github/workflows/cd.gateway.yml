@@ -19,6 +19,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST_GATEWAY }}
+          port: 22
+          username: ${{ secrets.EC2_USER_GATEWAY }}
+          key: ${{ secrets.EC2_SSH_KEY_GATEWAY }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_port: 22
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_SSH_KEY }}
+          source: docker-compose.gateway.yml
+          target: /home/${{ secrets.EC2_USER_GATEWAY }}/app/
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -34,6 +51,7 @@ jobs:
           script: |
             set -e
 
+            mkdir -p ~/app
             cd ~/app
             sudo mkdir -p ~/app/gateway
             sudo chown -R "$USER":"$USER" ~/app/gateway
