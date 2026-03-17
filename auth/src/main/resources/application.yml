@@ -21,10 +21,17 @@ spring:
     properties:
       hibernate.jdbc.time_zone: Asia/Seoul
 
+#  data:
+#    redis:
+#      host: ${REDIS_HOST:localhost}
+#      port: ${REDIS_PORT:6379}
+
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      cluster:
+        nodes:
+          - ${REDIS_HOST}:${REDIS_PORT}
+
   kafka:
     bootstrap-servers: ${kafka.servers:localhost:29092}
     producer:
