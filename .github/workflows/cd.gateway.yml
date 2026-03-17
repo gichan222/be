@@ -78,15 +78,12 @@ jobs:
             # Log in to GHCR using a PAT stored as a repository secret
             echo "${{ secrets.GHCR_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            # Export IMAGE_PREFIX for docker-compose interpolation
-            export IMAGE_PREFIX=ghcr.io/${{ github.repository_owner }}
-
             # Pull latest image for gateway
-            sudo docker compose -f docker-compose.gateway.yml pull gateway
+            sudo IMAGE_PREFIX=ghcr.io/${{ github.repository_owner }} docker compose -f docker-compose.gateway.yml pull gateway
 
             # Restart gateway service
             echo "Restarting gateway..."
-            sudo docker compose -f docker-compose.gateway.yml up -d --no-deps gateway
+            sudo IMAGE_PREFIX=ghcr.io/${{ github.repository_owner }} docker compose -f docker-compose.gateway.yml up -d --no-deps gateway
             echo "gateway restarted."
 
             # Remove dangling images to free disk space
