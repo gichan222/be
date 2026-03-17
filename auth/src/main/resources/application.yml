@@ -31,7 +31,8 @@ spring:
       cluster:
         nodes:
           - ${REDIS_HOST}:${REDIS_PORT}
-
+      ssl:
+        enabled: true
   kafka:
     bootstrap-servers: ${kafka.servers:localhost:29092}
     producer:
