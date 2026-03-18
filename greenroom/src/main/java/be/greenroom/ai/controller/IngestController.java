@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "AI Ingest", description = "AI 서버 결과 수신 API")
 @RestController
-@RequestMapping("/ai")
+@RequestMapping("/greenroom/ai")
 public class IngestController {
 
 	@Operation(summary = "감정 로그 수신", description = "요청을 수신하고 즉시 200 OK를 반환합니다.")

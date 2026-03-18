@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping("/ai/tickets")
+@RequestMapping("/greenroom/ai/tickets")
 public class AiTicketController {
 
 	private final TicketService ticketService;
