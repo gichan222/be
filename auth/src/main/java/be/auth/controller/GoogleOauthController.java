@@ -1,0 +1,107 @@
+package be.auth.controller;
+
+import java.time.Duration;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import be.auth.dto.LoginResult;
+import be.auth.dto.request.GoogleLoginRequest;
+import be.auth.dto.response.LoginResponse;
+import be.auth.service.AuthService;
+import be.auth.service.GoogleOauthService;
+import be.common.api.ApiResult;
+import be.common.api.ErrorCode;
+import be.common.docs.ApiErrorCodeExamples;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@Tag(name = "Google OAuth 인증", description = "소셜 로그인 API")
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/auth/oauth")
+public class GoogleOauthController {
+
+	private final GoogleOauthService googleOauthService;
+	private final AuthService authService;
+
+	@Operation(
+		summary = "소셜 로그인",
+		description = "Authorization Code를 이용해 구글 로그인 후 서비스 토큰을 발급합니다."
+	)
+	@ApiErrorCodeExamples({
+		ErrorCode.FAIL_LOGIN,
+		ErrorCode.ACCOUNT_INACTIVATED,
+	})
+	@PostMapping("/login")
+	@ResponseStatus(HttpStatus.OK)
+
+	public ApiResult<LoginResponse> login(
+		@RequestBody @Valid GoogleLoginRequest request,
+		HttpServletResponse response
+	) {
+		LoginResult result = googleOauthService.login(request.code());
+
+		// Refresh Token을 HttpOnly Cookie로 설정
+		response.addHeader(
+			"Set-Cookie",
+			ResponseCookie.from("refreshToken", result.refreshToken())
+				.httpOnly(true)
+				// TODO : 배포 서비스에서는 true를 사용
+				.secure(true)          // HTTPS 환경에서만
+				.sameSite("Lax")
+				.path("/auth/refresh")
+				.maxAge(Duration.ofDays(14))
+				.build()
+				.toString()
+		);
+
+		return ApiResult.ok(new LoginResponse(result.accessToken(), result.firstLogin()));
+	}
+
+	@Operation(
+		summary = "소셜 로그아웃",
+		security = @SecurityRequirement(name = "Access Token"),
+		description = "토큰을 만료시키고 로그아웃합니다."
+	)
+	@PostMapping("/logout")
+	@ResponseStatus(HttpStatus.OK)
+	public ApiResult<Void> googleLogout(
+		@RequestHeader(value = "Authorization", required = false) String authorization,
+		@CookieValue(value = "refreshToken", required = false) String refreshToken,
+		HttpServletResponse response
+	) {
+		// Bearer 제거
+		String accessToken = null;
+		if (authorization != null && authorization.startsWith("Bearer ")) {
+			accessToken = authorization.substring(7);
+		}
+		authService.logout(accessToken, refreshToken);
+
+		// refreshToken 쿠키 만료
+		response.addHeader(
+			"Set-Cookie",
+			ResponseCookie.from("refreshToken", "")
+				.httpOnly(true)
+				.secure(false)    // 배포 시 true
+				.sameSite("Lax")
+				.path("/auth/refresh")
+				.maxAge(0)
+				.build()
+				.toString()
+		);
+
+		return ApiResult.ok();
+	}
+}
