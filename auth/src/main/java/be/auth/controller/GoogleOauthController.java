@@ -61,7 +61,7 @@ public class GoogleOauthController {
 				// TODO : 배포 서비스에서는 true를 사용
 				.secure(true)          // HTTPS 환경에서만
 				.sameSite("Lax")
-				.path("/auth/refresh")
+				.path("/")
 				.maxAge(Duration.ofDays(14))
 				.build()
 				.toString()
@@ -96,7 +96,7 @@ public class GoogleOauthController {
 				.httpOnly(true)
 				.secure(false)    // 배포 시 true
 				.sameSite("Lax")
-				.path("/auth/refresh")
+				.path("/")
 				.maxAge(0)
 				.build()
 				.toString()
