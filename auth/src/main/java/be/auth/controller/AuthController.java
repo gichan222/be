@@ -141,7 +141,7 @@ public class AuthController {
 			ResponseCookie.from("refreshToken", "")
 				.httpOnly(true)
 				.secure(false)
-				.sameSite("Lax")
+				.sameSite("NONE")
 				.path("/")
 				.maxAge(0)
 				.build()
