@@ -62,7 +62,7 @@ public class AuthController {
 				// TODO : 배포 서비스에서는 true를 사용
 				.secure(true)          // HTTPS 환경에서만
 				.sameSite("Lax")
-				.path("/auth/refresh")
+				.path("/")
 				.maxAge(Duration.ofDays(14))
 				.build()
 				.toString()
@@ -94,7 +94,7 @@ public class AuthController {
 				.httpOnly(true)
 				.secure(false)
 				.sameSite("Lax")
-				.path("/auth/refresh")
+				.path("/")
 				.maxAge(Duration.ofDays(14))
 				.build()
 				.toString()
@@ -142,7 +142,7 @@ public class AuthController {
 				.httpOnly(true)
 				.secure(false)
 				.sameSite("Lax")
-				.path("/auth/refresh")
+				.path("/")
 				.maxAge(0)
 				.build()
 				.toString()
