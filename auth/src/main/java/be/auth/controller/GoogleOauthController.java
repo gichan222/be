@@ -59,7 +59,7 @@ public class GoogleOauthController {
 			ResponseCookie.from("refreshToken", result.refreshToken())
 				.httpOnly(true)
 				// TODO : 배포 서비스에서는 true를 사용
-				.secure(true)          // HTTPS 환경에서만
+				.secure(false)          // HTTPS 환경에서만
 				.sameSite("Lax")
 				.path("/")
 				.maxAge(Duration.ofDays(14))
@@ -93,7 +93,7 @@ public class GoogleOauthController {
 		response.addHeader(
 			"Set-Cookie",
 			ResponseCookie.from("refreshToken", "")
-				.httpOnly(true)
+				.httpOnly(false)
 				.secure(false)    // 배포 시 true
 				.sameSite("Lax")
 				.path("/")
